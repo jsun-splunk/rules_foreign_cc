@@ -53,3 +53,22 @@ def copy_directory(actions, orig_path, copy_path):
             ),
         ]),
     )
+
+def copy_files(actions, files_to_copy, target_dir_path):
+    files_copy_script = []
+    for file in files_to_copy:
+        copy_script = copy_file(actions, file, "{}/{}".format(target_dir_path, file))
+        files_copy_script.append(copy_script)
+    return files_copy_script
+
+def copy_file(actions, orig_path, copy_path):
+    file_copy = actions.declare_file(copy_path)
+    return _created_by_script(
+        file = file_copy,
+        script = "\n".join([
+            "##copy_dir_contents_to_dir## {} $$EXT_BUILD_ROOT$$/{}".format(
+                orig_path,
+                file_copy.path,
+            ),
+        ]),
+    )

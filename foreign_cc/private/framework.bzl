@@ -25,6 +25,7 @@ load(
 load(
     ":run_shell_file_utils.bzl",
     "copy_directory",
+    "copy_files",
 )
 
 # Dict with definitions of the context attributes, that customize cc_external_rule_impl function.
@@ -115,6 +116,14 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         ),
         mandatory = False,
         default = [],
+    ),
+    "out_data_files": attr.string_list(
+        doc = "Optional name of output files created by the build.",
+        mandatory = False,
+        default = [],
+    ),
+    "data_out": attr.output_list(
+        mandatory=False,
     ),
     "lib_name": attr.string(
         doc = (
@@ -416,6 +425,8 @@ def cc_external_rule_impl(ctx, attrs):
     installdir_copy = copy_directory(ctx.actions, "$$INSTALLDIR$$", "copy_{}/{}".format(lib_name, lib_name))
     target_root = paths.dirname(installdir_copy.file.dirname)
 
+    out_data_copy = copy_files(ctx.actions, ctx.attr.out_data_files, "copy_{}".format(lib_name))
+
     data_dependencies = ctx.attr.data + ctx.attr.build_data + ctx.attr.toolchains
     for tool in attrs.tools_data:
         if tool.target:
@@ -452,6 +463,9 @@ def cc_external_rule_impl(ctx, attrs):
         "##replace_absolute_paths## $$INSTALLDIR$$ $$EXT_BUILD_DEPS$$",
         "##replace_sandbox_paths## $$INSTALLDIR$$ $$EXT_BUILD_ROOT$$",
         installdir_copy.script,
+    ] + [
+        f.script for f in out_data_copy
+    ] + [
         "cd $$EXT_BUILD_ROOT$$",
     ] + [
         "##replace_symlink## {}".format(file.path)
@@ -470,7 +484,7 @@ def cc_external_rule_impl(ctx, attrs):
     ])
     wrapped_outputs = wrap_outputs(ctx, lib_name, attrs.configure_name, script_text)
 
-    rule_outputs = outputs.declared_outputs + [installdir_copy.file]
+    rule_outputs = outputs.declared_outputs + [installdir_copy.file] + [f.file for f in out_data_copy]
     cc_toolchain = find_cpp_toolchain(ctx)
 
     execution_requirements = {tag: "" for tag in ctx.attr.tags}
@@ -537,16 +551,17 @@ def cc_external_rule_impl(ctx, attrs):
         lib_dir_name = attrs.out_lib_dir,
         include_dir_name = attrs.out_include_dir,
     )
-    output_groups = _declare_output_groups(installdir_copy.file, outputs.out_binary_files + outputs.libraries.static_libraries + outputs.libraries.shared_libraries + [outputs.out_include_dir])
+    output_groups = _declare_output_groups(installdir_copy.file, out_data_copy, outputs.out_binary_files + outputs.libraries.static_libraries + outputs.libraries.shared_libraries + [outputs.out_include_dir])
     wrapped_files = [
         wrapped_outputs.script_file,
         wrapped_outputs.log_file,
         wrapped_outputs.wrapper_script_file,
     ]
     output_groups[attrs.configure_name + "_logs"] = wrapped_files
+
     return [
         DefaultInfo(
-            files = depset(direct = outputs.declared_outputs),
+            files = depset(direct = outputs.declared_outputs + [f.file for f in out_data_copy]),
             runfiles = runfiles,
         ),
         OutputGroupInfo(**output_groups),
@@ -641,11 +656,15 @@ def wrap_outputs(ctx, lib_name, configure_name, script_text, build_script_file =
         wrapper_script = build_command,
     )
 
-def _declare_output_groups(installdir, outputs):
+def _declare_output_groups(installdir, out_data_files, outputs):
     dict_ = {}
     dict_["gen_dir"] = depset([installdir])
+    dict_["out_data_files"] = depset([f.file for f in out_data_files])
     for output in outputs:
-        dict_[output.basename] = [output]
+        if output.basename in dict_:
+            dict_[output.basename].append(output)
+        else:
+            dict_[output.basename] = [output]
     return dict_
 
 def _get_transitive_artifacts(deps):
