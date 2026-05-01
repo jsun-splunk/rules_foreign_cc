@@ -31,6 +31,7 @@ load(
     ":run_shell_file_utils.bzl",
     "copy_directory",
 )
+load(":runtime_library_search_directories.bzl", "RUNTIME_LIBRARY_SEARCH_DIRECTORY_ATTRIBUTES")
 
 # Dict with definitions of the context attributes, that customize cc_external_rule_impl function.
 # Many of the attributes have default values.
@@ -262,6 +263,7 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
 }
 
 # this would be cleaner as x | y, but that's not supported in bazel 5.4.0
+CC_EXTERNAL_RULE_ATTRIBUTES.update(RUNTIME_LIBRARY_SEARCH_DIRECTORY_ATTRIBUTES)
 CC_EXTERNAL_RULE_ATTRIBUTES.update(PLATFORM_CONSTRAINTS_RULE_ATTRIBUTES)
 CC_EXTERNAL_RULE_ATTRIBUTES.update(SIZE_ATTRIBUTES)
 
@@ -316,6 +318,8 @@ of the script, and allows to reuse the inputs structure, created by the framewor
         inputs = """InputFiles provider: summarized information on rule inputs, created by framework
 function, to be reused in script creator. Contains in particular merged compilation and linking
 dependencies.""",
+        runtime_search_context = """Declared outputs and install-root metadata used to derive
+runtime library search directories.""",
     ),
 )
 
@@ -504,6 +508,10 @@ def cc_external_rule_impl(ctx, attrs):
     installdir_copy = copy_directory(ctx.actions, "$$INSTALLDIR$$", "copy_{}/{}".format(lib_name, lib_name))
     target_root = paths.dirname(installdir_copy.file.dirname)
 
+    # `installdir` is File.path-style for the build action. Runtime search
+    # directory calculation needs the same install root in File.short_path space.
+    install_root_short_path = paths.join(paths.dirname(paths.dirname(installdir_copy.file.short_path)), lib_name)
+
     data_dependencies = ctx.attr.data + ctx.attr.build_data + ctx.attr.toolchains
     tools_env = {}
     for tool in attrs.tools_data:
@@ -545,7 +553,16 @@ def cc_external_rule_impl(ctx, attrs):
         "##mkdirs## $$EXT_BUILD_DEPS$$",
     ] + _print_env() + _copy_deps_and_tools(inputs) + [
         "cd $$BUILD_TMPDIR$$",
-    ] + attrs.create_configure_script(ConfigureParameters(ctx = ctx, attrs = attrs, inputs = inputs)) + postfix_script + validation_script + [
+    ] + attrs.create_configure_script(ConfigureParameters(
+        ctx = ctx,
+        attrs = attrs,
+        inputs = inputs,
+        runtime_search_context = struct(
+            executable_files = outputs.out_binary_files,
+            install_root_short_path = install_root_short_path,
+            shared_files = outputs.libraries.shared_libraries,
+        ),
+    )) + postfix_script + validation_script + [
         # replace references to the root directory when building ($BUILD_TMPDIR)
         # and the root where the dependencies were installed ($EXT_BUILD_DEPS)
         # for the results which are in $INSTALLDIR (with placeholder)

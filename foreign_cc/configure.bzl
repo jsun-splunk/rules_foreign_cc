@@ -20,6 +20,10 @@ load(
     "create_attrs",
     "expand_locations_and_make_variables",
 )
+load(
+    "//foreign_cc/private:runtime_library_search_directories.bzl",
+    "runtime_library_search_directories_enabled",
+)
 load("//foreign_cc/private:transitions.bzl", "foreign_cc_rule_variant")
 load(
     "//toolchains/native_tools:tool_access.bzl",
@@ -75,7 +79,10 @@ def _create_configure_script(configureParameters):
     inputs = configureParameters.inputs
 
     tools = get_tools_info(ctx)
-    flags = get_flags_info(ctx)
+    flags = get_flags_info(
+        ctx,
+        runtime_search_context = configureParameters.runtime_search_context,
+    )
 
     define_install_prefix = ["export INSTALL_PREFIX=\"" + _get_install_prefix(ctx) + "\""]
 
@@ -124,11 +131,27 @@ def _create_configure_script(configureParameters):
         make_path = attrs.make_path,
         make_targets = ctx.attr.targets,
         make_args = args,
-        executable_ldflags_vars = ctx.attr.executable_ldflags_vars,
+        executable_ldflags_vars = _executable_ldflags_vars_for_make(ctx, flags),
         shared_ldflags_vars = ctx.attr.shared_ldflags_vars,
         is_msvc = is_msvc,
     )
     return define_install_prefix + configure
+
+def _executable_ldflags_vars_for_make(ctx, flags):
+    executable_ldflags_vars = list(ctx.attr.executable_ldflags_vars)
+    if (
+        runtime_library_search_directories_enabled(ctx) and
+        _flags_contain_loader_token(flags.cxx_linker_executable) and
+        "LDFLAGS" not in executable_ldflags_vars
+    ):
+        executable_ldflags_vars.append("LDFLAGS")
+    return executable_ldflags_vars
+
+def _flags_contain_loader_token(flags):
+    for flag in flags:
+        if "$ORIGIN" in flag or "$EXEC_ORIGIN" in flag:
+            return True
+    return False
 
 def _get_install_prefix(ctx):
     if ctx.attr.install_prefix:
