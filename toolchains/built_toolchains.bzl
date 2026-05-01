@@ -281,6 +281,8 @@ def _pkgconfig_toolchain(version, register_toolchains):
         http_archive,
         name = "glib_dev",
         build_file_content = '''
+load("@rules_cc//cc:defs.bzl", "cc_import")
+
 cc_import(
     name = "glib_dev",
     hdrs = glob(["include/**"]),
@@ -299,6 +301,8 @@ cc_import(
         http_archive,
         name = "glib_src",
         build_file_content = '''
+load("@rules_cc//cc:defs.bzl", "cc_import")
+
 cc_import(
     name = "msvc_hdr",
     hdrs = ["msvc_recommended_pragmas.h"],
@@ -339,6 +343,8 @@ exports_files(
         http_archive,
         name = "gettext_runtime",
         build_file_content = '''
+load("@rules_cc//cc:defs.bzl", "cc_import")
+
 cc_import(
     name = "gettext_runtime",
     shared_library = "bin/libintl-8.dll",
