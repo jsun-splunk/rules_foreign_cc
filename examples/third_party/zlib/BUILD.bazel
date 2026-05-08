@@ -25,7 +25,7 @@ cc_binary(
         "@platforms//os:windows": ["@rules_foreign_cc_examples_third_party//:broken"],
         "//conditions:default": [],
     }),
-    deps = ["@examples_zlib//:zlib"],
+    deps = ["@examples_zlib//:zlib_foreign_static"],
 )
 
 sh_test(

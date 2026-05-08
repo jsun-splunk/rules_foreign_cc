@@ -1,0 +1,86 @@
+load("//integration_tests/transitive_cc_foreign_matrix:provider_semantic_parity_tests.bzl", "provider_semantic_parity_test")
+
+ALL_SUPPORTED_PLATFORMS = select({
+    "@platforms//os:linux": [],
+    "@platforms//os:macos": [],
+    "@platforms//os:windows": [],
+    "//conditions:default": ["@platforms//:incompatible"],
+})
+
+provider_semantic_parity_test(
+    name = "zlib_static",
+    size = "small",
+    actual = "@examples_zlib//:zlib_foreign_static",
+    expected = "@examples_zlib//:zlib_static",
+    target_compatible_with = ALL_SUPPORTED_PLATFORMS,
+)
+
+provider_semantic_parity_test(
+    name = "zlib_shared",
+    size = "small",
+    actual = "@examples_zlib//:zlib_foreign_shared",
+    expected = "@examples_zlib//:zlib_dynamic",
+    target_compatible_with = ALL_SUPPORTED_PLATFORMS,
+)
+
+provider_semantic_parity_test(
+    name = "libarchive_static_zlib_static",
+    size = "small",
+    actual = "@examples_libarchive//:libarchive_foreign_static_zlib_static",
+    expected = "@examples_libarchive//:libarchive_static_zlib_static",
+    target_compatible_with = ALL_SUPPORTED_PLATFORMS,
+)
+
+provider_semantic_parity_test(
+    name = "libarchive_static_zlib_foreign_static",
+    size = "small",
+    actual = "@examples_libarchive//:libarchive_foreign_static_zlib_foreign_static",
+    expected = "@examples_libarchive//:libarchive_static_zlib_foreign_static",
+    target_compatible_with = ALL_SUPPORTED_PLATFORMS,
+)
+
+provider_semantic_parity_test(
+    name = "libarchive_static_zlib_dynamic",
+    size = "small",
+    actual = "@examples_libarchive//:libarchive_foreign_static_zlib_dynamic",
+    expected = "@examples_libarchive//:libarchive_static_zlib_dynamic",
+    target_compatible_with = ALL_SUPPORTED_PLATFORMS,
+)
+
+provider_semantic_parity_test(
+    name = "libarchive_static_zlib_foreign_shared",
+    size = "small",
+    actual = "@examples_libarchive//:libarchive_foreign_static_zlib_foreign_shared",
+    expected = "@examples_libarchive//:libarchive_static_zlib_foreign_shared",
+    target_compatible_with = ALL_SUPPORTED_PLATFORMS,
+)
+
+provider_semantic_parity_test(
+    name = "libarchive_shared_zlib_dynamic",
+    size = "small",
+    actual = "@examples_libarchive//:libarchive_foreign_shared_zlib_dynamic",
+    expected = "@examples_libarchive//:libarchive_dynamic_zlib_dynamic",
+    target_compatible_with = ALL_SUPPORTED_PLATFORMS,
+)
+
+provider_semantic_parity_test(
+    name = "libarchive_shared_zlib_foreign_shared",
+    size = "small",
+    actual = "@examples_libarchive//:libarchive_foreign_shared_zlib_foreign_shared",
+    expected = "@examples_libarchive//:libarchive_dynamic_zlib_foreign_shared",
+    target_compatible_with = ALL_SUPPORTED_PLATFORMS,
+)
+
+test_suite(
+    name = "tests",
+    tests = [
+        ":libarchive_shared_zlib_dynamic",
+        ":libarchive_shared_zlib_foreign_shared",
+        ":libarchive_static_zlib_dynamic",
+        ":libarchive_static_zlib_foreign_shared",
+        ":libarchive_static_zlib_foreign_static",
+        ":libarchive_static_zlib_static",
+        ":zlib_shared",
+        ":zlib_static",
+    ],
+)

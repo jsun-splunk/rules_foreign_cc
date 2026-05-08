@@ -15,6 +15,12 @@ def zlib_repositories():
             # Similar patches are used in vcpkg and conan to resolve the same issue
             Label("//zlib:zlib.patch"),
         ],
+        patch_cmds = [
+            "cp -f zconf.h.in zconf.h",
+        ],
+        patch_cmds_win = [
+            "Copy-Item -Force zconf.h.in zconf.h",
+        ],
         urls = [
             "https://github.com/madler/zlib/releases/download/v1.3.1/zlib-1.3.1.tar.gz",
         ],

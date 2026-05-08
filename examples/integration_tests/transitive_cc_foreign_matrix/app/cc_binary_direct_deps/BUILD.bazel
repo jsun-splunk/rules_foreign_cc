@@ -1,0 +1,54 @@
+load(
+    "//integration_tests/transitive_cc_foreign_matrix:consumer_tests.bzl",
+    "cc_binary_consumer_test",
+    "expected_loaded_libraries",
+)
+
+cc_binary_consumer_test(
+    name = "libarchive_foreign_shared_zlib_static",
+    expected_loaded_libraries = expected_loaded_libraries(
+        libarchive = "@examples_libarchive//:libarchive_foreign_shared_zlib_static",
+    ),
+    linkstatic = False,
+    deps = ["@examples_libarchive//:libarchive_foreign_shared_zlib_static"],
+)
+
+cc_binary_consumer_test(
+    name = "libarchive_foreign_shared_zlib_foreign_static",
+    expected_loaded_libraries = expected_loaded_libraries(
+        libarchive = "@examples_libarchive//:libarchive_foreign_shared_zlib_foreign_static",
+    ),
+    linkstatic = False,
+    deps = ["@examples_libarchive//:libarchive_foreign_shared_zlib_foreign_static"],
+)
+
+cc_binary_consumer_test(
+    name = "libarchive_foreign_shared_zlib_dynamic",
+    expected_loaded_libraries = expected_loaded_libraries(
+        libarchive = "@examples_libarchive//:libarchive_foreign_shared_zlib_dynamic",
+        zlib = "@examples_zlib//:zlib_shared",
+    ),
+    linkstatic = False,
+    deps = ["@examples_libarchive//:libarchive_foreign_shared_zlib_dynamic"],
+)
+
+cc_binary_consumer_test(
+    name = "libarchive_foreign_shared_zlib_foreign_shared",
+    expected_loaded_libraries = expected_loaded_libraries(
+        libarchive = "@examples_libarchive//:libarchive_foreign_shared_zlib_foreign_shared",
+        zlib = "@examples_zlib//:zlib_foreign_shared",
+    ),
+    linkstatic = False,
+    deps = ["@examples_libarchive//:libarchive_foreign_shared_zlib_foreign_shared"],
+)
+
+test_suite(
+    name = "tests",
+    tests = [
+        ":libarchive_foreign_shared_zlib_dynamic_test",
+        ":libarchive_foreign_shared_zlib_foreign_shared_test",
+        ":libarchive_foreign_shared_zlib_foreign_static_test",
+        ":libarchive_foreign_shared_zlib_static_test",
+    ],
+    visibility = ["//integration_tests/transitive_cc_foreign_matrix:__pkg__"],
+)
