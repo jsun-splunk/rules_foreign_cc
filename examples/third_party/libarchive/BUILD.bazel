@@ -1,0 +1,32 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+exports_files(
+    [
+        "BUILD.libarchive.bazel",
+        "libarchive_config_darwin.h",
+        "libarchive_config_linux.h",
+        "libarchive_config_windows.h",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "config_darwin",
+    hdrs = ["libarchive_config_darwin.h"],
+    includes = ["."],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "config_linux",
+    hdrs = ["libarchive_config_linux.h"],
+    includes = ["."],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "config_windows",
+    hdrs = ["libarchive_config_windows.h"],
+    includes = ["."],
+    visibility = ["//visibility:public"],
+)

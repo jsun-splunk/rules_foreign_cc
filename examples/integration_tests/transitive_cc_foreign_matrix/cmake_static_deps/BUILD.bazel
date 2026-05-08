@@ -1,0 +1,139 @@
+load(
+    "//integration_tests/transitive_cc_foreign_matrix:consumer_tests.bzl",
+    "cmake_cache_entries",
+    "cmake_consumer_test",
+    "expected_loaded_libraries",
+)
+
+cmake_consumer_test(
+    name = "libarchive_static_zlib_static",
+    cache_entries = cmake_cache_entries(
+        libarchive = "libarchive_static_zlib_static",
+        zlib = "z",
+    ),
+    expected_loaded_libraries = expected_loaded_libraries(),
+    deps = [
+        "@examples_libarchive//:libarchive_static_zlib_static",
+        "@examples_zlib//:zlib_static",
+    ],
+)
+
+cmake_consumer_test(
+    name = "libarchive_static_zlib_foreign_static",
+    cache_entries = cmake_cache_entries(
+        libarchive = "libarchive_static_zlib_foreign_static",
+        zlib = "z",
+        zlib_windows = "zlib",
+    ),
+    expected_loaded_libraries = expected_loaded_libraries(),
+    deps = [
+        "@examples_libarchive//:libarchive_static_zlib_foreign_static",
+        "@examples_zlib//:zlib_foreign_static",
+    ],
+)
+
+cmake_consumer_test(
+    name = "libarchive_static_zlib_dynamic",
+    cache_entries = cmake_cache_entries(
+        libarchive = "libarchive_static_zlib_dynamic",
+        zlib = "z",
+        zlib_windows = "zlib_shared.if",
+    ),
+    expected_loaded_libraries = expected_loaded_libraries(
+        zlib = "@examples_zlib//:zlib_shared",
+    ),
+    deps = [
+        "@examples_libarchive//:libarchive_static_zlib_dynamic",
+        "@examples_zlib//:zlib_dynamic",
+    ],
+)
+
+cmake_consumer_test(
+    name = "libarchive_static_zlib_foreign_shared",
+    cache_entries = cmake_cache_entries(
+        libarchive = "libarchive_static_zlib_foreign_shared",
+        zlib = "z",
+        zlib_windows = "zlib1",
+    ),
+    expected_loaded_libraries = expected_loaded_libraries(
+        zlib = "@examples_zlib//:zlib_foreign_shared",
+    ),
+    deps = [
+        "@examples_libarchive//:libarchive_static_zlib_foreign_shared",
+        "@examples_zlib//:zlib_foreign_shared",
+    ],
+)
+
+cmake_consumer_test(
+    name = "libarchive_foreign_static_zlib_static",
+    cache_entries = cmake_cache_entries(
+        libarchive = "archive",
+        zlib = "z",
+    ),
+    expected_loaded_libraries = expected_loaded_libraries(),
+    deps = [
+        "@examples_libarchive//:libarchive_foreign_static_zlib_static",
+        "@examples_zlib//:zlib_static",
+    ],
+)
+
+cmake_consumer_test(
+    name = "libarchive_foreign_static_zlib_foreign_static",
+    cache_entries = cmake_cache_entries(
+        libarchive = "archive",
+        zlib = "z",
+        zlib_windows = "zlib",
+    ),
+    expected_loaded_libraries = expected_loaded_libraries(),
+    deps = [
+        "@examples_libarchive//:libarchive_foreign_static_zlib_foreign_static",
+        "@examples_zlib//:zlib_foreign_static",
+    ],
+)
+
+cmake_consumer_test(
+    name = "libarchive_foreign_static_zlib_dynamic",
+    cache_entries = cmake_cache_entries(
+        libarchive = "archive",
+        zlib = "z",
+        zlib_windows = "zlib_shared.if",
+    ),
+    expected_loaded_libraries = expected_loaded_libraries(
+        zlib = "@examples_zlib//:zlib_shared",
+    ),
+    deps = [
+        "@examples_libarchive//:libarchive_foreign_static_zlib_dynamic",
+        "@examples_zlib//:zlib_dynamic",
+    ],
+)
+
+cmake_consumer_test(
+    name = "libarchive_foreign_static_zlib_foreign_shared",
+    cache_entries = cmake_cache_entries(
+        libarchive = "archive",
+        zlib = "z",
+        zlib_windows = "zlib1",
+    ),
+    expected_loaded_libraries = expected_loaded_libraries(
+        zlib = "@examples_zlib//:zlib_foreign_shared",
+    ),
+    deps = [
+        "@examples_libarchive//:libarchive_foreign_static_zlib_foreign_shared",
+        "@examples_zlib//:zlib_foreign_shared",
+    ],
+)
+
+test_suite(
+    name = "tests",
+    tests = [
+        ":libarchive_foreign_static_zlib_dynamic_test",
+        ":libarchive_foreign_static_zlib_foreign_shared_test",
+        ":libarchive_foreign_static_zlib_foreign_static_test",
+        ":libarchive_foreign_static_zlib_static_test",
+        ":libarchive_static_zlib_dynamic_test",
+        ":libarchive_static_zlib_foreign_shared_test",
+        ":libarchive_static_zlib_foreign_static_test",
+        ":libarchive_static_zlib_static_test",
+    ],
+    visibility = ["//integration_tests/transitive_cc_foreign_matrix:__pkg__"],
+)

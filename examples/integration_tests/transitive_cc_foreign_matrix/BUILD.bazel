@@ -1,0 +1,80 @@
+exports_files(
+    [
+        "app.c",
+        "runtime_test.sh",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "foreign_app_srcs",
+    srcs = [
+        "CMakeLists.txt",
+        "app.c",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+test_suite(
+    name = "runtime_tests",
+    tests = [
+        ":cc_binary_runtime_tests",
+        ":cmake_runtime_tests",
+    ],
+)
+
+test_suite(
+    name = "cc_binary_tests",
+    tests = [
+        ":cc_binary_runtime_tests",
+    ],
+)
+
+test_suite(
+    name = "cmake_tests",
+    tests = [
+        ":cmake_runtime_tests",
+    ],
+)
+
+test_suite(
+    name = "provider_parity_tests",
+    tests = [
+        "//integration_tests/transitive_cc_foreign_matrix/provider_parity_tests:tests",
+    ],
+)
+
+test_suite(
+    name = "known_gap_tests",
+    tests = [
+        "//integration_tests/transitive_cc_foreign_matrix/known_gap:tests",
+    ],
+)
+
+test_suite(
+    name = "tests",
+    tests = [
+        ":provider_parity_tests",
+        ":runtime_tests",
+    ],
+)
+
+test_suite(
+    name = "cc_binary_runtime_tests",
+    tests = [
+        "//integration_tests/transitive_cc_foreign_matrix/cc_binary_direct_deps:tests",
+        "//integration_tests/transitive_cc_foreign_matrix/cc_binary_dynamic_deps:tests",
+        "//integration_tests/transitive_cc_foreign_matrix/cc_binary_static_deps:tests",
+        "//integration_tests/transitive_cc_foreign_matrix/cc_binary_wrapped_cc_library:tests",
+    ],
+)
+
+test_suite(
+    name = "cmake_runtime_tests",
+    tests = [
+        "//integration_tests/transitive_cc_foreign_matrix/cmake_direct_deps:tests",
+        "//integration_tests/transitive_cc_foreign_matrix/cmake_dynamic_deps:tests",
+        "//integration_tests/transitive_cc_foreign_matrix/cmake_static_deps:tests",
+        "//integration_tests/transitive_cc_foreign_matrix/cmake_wrapped_cc_library:tests",
+    ],
+)
